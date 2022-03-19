@@ -12,6 +12,8 @@ export class DistributionProps {
 }
 
 export class Distribution extends Construct {
+  public readonly value: cloudfront.IDistribution;
+
   constructor(scope: Construct, id: string, props: DistributionProps) {
     super(scope, id);
 
@@ -52,5 +54,7 @@ export class Distribution extends Construct {
       sources: [s3Deploy.Source.asset(props.pathToCode)],
       distribution: cloudFront,
     });
+
+    this.value = cloudFront;
   }
 }
