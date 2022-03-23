@@ -23,9 +23,12 @@ export class Distribution extends Construct {
       versioned: false,
     });
 
+    const originAccessIdentity = new cloudfront.OriginAccessIdentity(this, 'CloudFrontS3Identity');
+    sourceBucket.grantRead(originAccessIdentity);
+
     const cloudFront = new cloudfront.CloudFrontWebDistribution(this, 'ClientDistribution', {
       priceClass: cloudfront.PriceClass.PRICE_CLASS_100,
-      viewerProtocolPolicy: cloudfront.ViewerProtocolPolicy.HTTPS_ONLY,
+      viewerProtocolPolicy: cloudfront.ViewerProtocolPolicy.REDIRECT_TO_HTTPS,
       viewerCertificate: {
         aliases: [props.domain],
         props: {
@@ -38,10 +41,12 @@ export class Distribution extends Construct {
         {
           s3OriginSource: {
             s3BucketSource: sourceBucket,
+            originAccessIdentity,
           },
           behaviors: [
             {
               isDefaultBehavior: true,
+              minTtl: Duration.days(31),
               defaultTtl: Duration.days(31),
             },
           ],

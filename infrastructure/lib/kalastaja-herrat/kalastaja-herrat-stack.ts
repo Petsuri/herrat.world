@@ -23,11 +23,13 @@ export class KalastajaHerratStack extends Stack {
     new route53.ARecord(this, 'KalastaARecord', {
       zone: props.zone,
       target: route53.RecordTarget.fromAlias(new CloudFrontTarget(distribution.value)),
+      recordName: 'kalastaja.herrat.world',
     });
 
     new route53.AaaaRecord(this, 'KalastaAAAARecord', {
       zone: props.zone,
       target: route53.RecordTarget.fromAlias(new CloudFrontTarget(distribution.value)),
+      recordName: 'kalastaja.herrat.world',
     });
   }
 }
