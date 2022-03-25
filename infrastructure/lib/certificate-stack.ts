@@ -6,6 +6,7 @@ import * as route53 from 'aws-cdk-lib/aws-route53';
 export class CertificateStack extends Stack {
   public readonly herrat: certificate.ICertificate;
   public readonly kalastajaHerrat: certificate.ICertificate;
+  public readonly loginKalastajaHerrat: certificate.ICertificate;
   public readonly zone: route53.IHostedZone;
 
   constructor(scope: Construct, id: string, props?: StackProps) {
@@ -24,6 +25,15 @@ export class CertificateStack extends Stack {
       domainName: 'kalastaja.herrat.world',
       validation: certificate.CertificateValidation.fromDns(hostedZone),
     });
+
+    this.loginKalastajaHerrat = new certificate.Certificate(
+      this,
+      'LoginKalastajaHerratCertificate',
+      {
+        domainName: 'login.kalastaja.herrat.world',
+        validation: certificate.CertificateValidation.fromDns(hostedZone),
+      }
+    );
 
     this.zone = hostedZone;
   }
