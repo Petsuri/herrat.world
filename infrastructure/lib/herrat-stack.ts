@@ -10,6 +10,7 @@ export class HerratStack extends Stack {
     const certificate = new CertificateStack(this, 'CertificateStack');
     new KalastajaHerratStack(this, 'KalastajaHerratStack', {
       certificate: certificate.kalastajaHerrat,
+      loginCertificate: certificate.loginKalastajaHerrat,
       zone: certificate.zone,
     });
   }

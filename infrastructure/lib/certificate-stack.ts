@@ -30,7 +30,7 @@ export class CertificateStack extends Stack {
       this,
       'LoginKalastajaHerratCertificate',
       {
-        domainName: 'login.kalastaja.herrat.world',
+        domainName: '*.kalastaja.herrat.world',
         validation: certificate.CertificateValidation.fromDns(hostedZone),
       }
     );
