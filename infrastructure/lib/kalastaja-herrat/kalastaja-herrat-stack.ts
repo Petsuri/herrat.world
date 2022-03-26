@@ -1,44 +1,43 @@
-import { Stack } from 'aws-cdk-lib';
+import { Stack, StackProps } from 'aws-cdk-lib';
 import { Construct } from 'constructs';
-import * as certificate from 'aws-cdk-lib/aws-certificatemanager';
 import { Distribution } from '../client-distribution/distribution';
 import * as route53 from 'aws-cdk-lib/aws-route53';
-import { CloudFrontTarget, UserPoolDomainTarget } from 'aws-cdk-lib/aws-route53-targets';
 import { Domain } from '../cognito/domain';
+import { Certificate } from 'aws-cdk-lib/aws-certificatemanager';
 
-export interface KalastajaHerratStackProps {
-  readonly certificate: certificate.ICertificate;
-  readonly loginCertificate: certificate.ICertificate;
-  readonly zone: route53.IHostedZone;
+export interface KalastajaHerratStackProps extends StackProps {
+  readonly certificateArn: string;
+  readonly loginCertificateArn: string;
+  readonly hostedZoneDomainName: string;
 }
 
 export class KalastajaHerratStack extends Stack {
   constructor(scope: Construct, id: string, props: KalastajaHerratStackProps) {
-    super(scope, id);
+    super(scope, id, props);
 
+    const certificate = Certificate.fromCertificateArn(this, 'Certificate', props.certificateArn);
+    const zone = route53.HostedZone.fromLookup(this, 'HostedZone', {
+      domainName: props.hostedZoneDomainName,
+    });
     const distribution = new Distribution(this, 'KalastajaHerratDistribution', {
-      certificate: props.certificate,
+      certificate: certificate,
+      zone,
       domain: 'kalastaja.herrat.world',
       pathToCode: '../kalastaja.herrat/client/build',
+      ...props,
     });
 
-    new route53.ARecord(this, 'KalastaARecord', {
-      zone: props.zone,
-      target: route53.RecordTarget.fromAlias(new CloudFrontTarget(distribution.value)),
-      recordName: 'kalastaja.herrat.world',
-    });
-
-    new route53.AaaaRecord(this, 'KalastaAAAARecord', {
-      zone: props.zone,
-      target: route53.RecordTarget.fromAlias(new CloudFrontTarget(distribution.value)),
-      recordName: 'kalastaja.herrat.world',
-    });
-
+    const loginCertificate = Certificate.fromCertificateArn(
+      this,
+      'LoginCertificate',
+      props.loginCertificateArn
+    );
     const cognitoDomain = new Domain(this, 'KalastajaHerratLogin', {
-      id: 'Cognito',
+      id: 'KalastajaHerratLogin',
       callbackUrls: ['http://localhost:3000/login'],
       logoutUrls: ['http://localhost:3000/logout'],
-      certificate: props.loginCertificate,
+      certificate: loginCertificate,
+      zone,
       customDomainName: 'login.kalastaja.herrat.world',
       scopes: [
         {
@@ -46,18 +45,12 @@ export class KalastajaHerratStack extends Stack {
           scopeName: '*',
         },
       ],
+      ...props,
     });
 
-    new route53.ARecord(this, 'LoginKalastaARecord', {
-      zone: props.zone,
-      target: route53.RecordTarget.fromAlias(new UserPoolDomainTarget(cognitoDomain.value)),
-      recordName: 'login.kalastaja.herrat.world',
-    });
-
-    new route53.AaaaRecord(this, 'LoginKalastaAAAARecord', {
-      zone: props.zone,
-      target: route53.RecordTarget.fromAlias(new UserPoolDomainTarget(cognitoDomain.value)),
-      recordName: 'login.kalastaja.herrat.world',
-    });
+    cognitoDomain.addDependency(
+      distribution,
+      'Requires A record for domain before can create cognito domain'
+    );
   }
 }

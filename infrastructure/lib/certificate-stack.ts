@@ -1,40 +1,37 @@
-import { Stack, StackProps } from 'aws-cdk-lib';
+import { CfnOutput, Stack, StackProps } from 'aws-cdk-lib';
 import { Construct } from 'constructs';
 import * as certificate from 'aws-cdk-lib/aws-certificatemanager';
 import * as route53 from 'aws-cdk-lib/aws-route53';
 
 export class CertificateStack extends Stack {
-  public readonly herrat: certificate.ICertificate;
-  public readonly kalastajaHerrat: certificate.ICertificate;
-  public readonly loginKalastajaHerrat: certificate.ICertificate;
-  public readonly zone: route53.IHostedZone;
-
   constructor(scope: Construct, id: string, props?: StackProps) {
     super(scope, id, props);
 
     const hostedZone = new route53.HostedZone(this, 'HostedZone', {
       zoneName: 'herrat.world',
     });
-
-    this.herrat = new certificate.Certificate(this, 'HerratCertificate', {
-      domainName: 'herrat.world',
-      validation: certificate.CertificateValidation.fromDns(hostedZone),
+    new CfnOutput(this, 'HostedZoneId', {
+      value: hostedZone.hostedZoneId,
+      exportName: 'HerratWorldHostedZoneId',
     });
 
-    this.kalastajaHerrat = new certificate.Certificate(this, 'KalastajaHerratCertificate', {
-      domainName: 'kalastaja.herrat.world',
-      validation: certificate.CertificateValidation.fromDns(hostedZone),
-    });
-
-    this.loginKalastajaHerrat = new certificate.Certificate(
-      this,
-      'LoginKalastajaHerratCertificate',
-      {
-        domainName: '*.kalastaja.herrat.world',
-        validation: certificate.CertificateValidation.fromDns(hostedZone),
-      }
+    this.addCertificate(hostedZone, 'HerratCertificate', 'herrat.world');
+    this.addCertificate(hostedZone, 'KalastajaHerratCertificate', 'kalastaja.herrat.world');
+    this.addCertificate(
+      hostedZone,
+      'KalastajaHerratWildcardSubdomainCertificate',
+      '*.kalastaja.herrat.world'
     );
+  }
 
-    this.zone = hostedZone;
+  private addCertificate(zone: route53.HostedZone, id: string, domainName: string): void {
+    const cert = new certificate.Certificate(this, id, {
+      domainName,
+      validation: certificate.CertificateValidation.fromDns(zone),
+    });
+    new CfnOutput(this, `${id}CertificateArn`, {
+      value: cert.certificateArn,
+      exportName: `${id}CertificateArn`,
+    });
   }
 }

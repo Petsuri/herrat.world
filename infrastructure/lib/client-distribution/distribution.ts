@@ -1,21 +1,23 @@
 import { Construct } from 'constructs';
 import * as s3 from 'aws-cdk-lib/aws-s3';
 import * as cloudfront from 'aws-cdk-lib/aws-cloudfront';
-import { Duration } from 'aws-cdk-lib';
+import { Duration, Stack, StackProps } from 'aws-cdk-lib';
 import * as certificate from 'aws-cdk-lib/aws-certificatemanager';
 import * as s3Deploy from 'aws-cdk-lib/aws-s3-deployment';
+import { IHostedZone } from 'aws-cdk-lib/aws-route53';
+import { CloudFrontTarget } from 'aws-cdk-lib/aws-route53-targets';
+import * as route53 from 'aws-cdk-lib/aws-route53';
 
-export class DistributionProps {
+export interface DistributionProps extends StackProps {
   readonly domain: string;
   readonly pathToCode: string;
   readonly certificate: certificate.ICertificate;
+  readonly zone: IHostedZone;
 }
 
-export class Distribution extends Construct {
-  public readonly value: cloudfront.IDistribution;
-
+export class Distribution extends Stack {
   constructor(scope: Construct, id: string, props: DistributionProps) {
-    super(scope, id);
+    super(scope, id, props);
 
     const sourceBucket = new s3.Bucket(this, 'ClientDistributionBucket', {
       publicReadAccess: false,
@@ -54,12 +56,22 @@ export class Distribution extends Construct {
       ],
     });
 
+    new route53.ARecord(this, 'KalastaARecord', {
+      zone: props.zone,
+      target: route53.RecordTarget.fromAlias(new CloudFrontTarget(cloudFront)),
+      recordName: 'kalastaja.herrat.world',
+    });
+
+    new route53.AaaaRecord(this, 'KalastaAAAARecord', {
+      zone: props.zone,
+      target: route53.RecordTarget.fromAlias(new CloudFrontTarget(cloudFront)),
+      recordName: 'kalastaja.herrat.world',
+    });
+
     new s3Deploy.BucketDeployment(this, 'ClientDistributionDeployment', {
       destinationBucket: sourceBucket,
       sources: [s3Deploy.Source.asset(props.pathToCode)],
       distribution: cloudFront,
     });
-
-    this.value = cloudFront;
   }
 }

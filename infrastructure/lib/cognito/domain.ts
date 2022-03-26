@@ -1,26 +1,27 @@
 import { Construct } from 'constructs';
 import * as cognito from 'aws-cdk-lib/aws-cognito';
-import { Duration } from 'aws-cdk-lib';
+import { Duration, Stack, StackProps } from 'aws-cdk-lib';
 import { ICertificate } from 'aws-cdk-lib/aws-certificatemanager';
-import { UserPoolDomain } from 'aws-cdk-lib/aws-cognito';
+import { IHostedZone } from 'aws-cdk-lib/aws-route53';
+import { UserPoolDomainTarget } from 'aws-cdk-lib/aws-route53-targets';
+import * as route53 from 'aws-cdk-lib/aws-route53';
 
-export interface DomainProps {
+export interface DomainProps extends StackProps {
   readonly id: string;
   readonly scopes: cognito.ResourceServerScope[];
   readonly customDomainName: string;
   readonly certificate: ICertificate;
+  readonly zone: IHostedZone;
   readonly callbackUrls: string[];
   readonly logoutUrls: string[];
 }
 
-export class Domain extends Construct {
-  public readonly value: UserPoolDomain;
-
+export class Domain extends Stack {
   constructor(scope: Construct, id: string, props: DomainProps) {
-    super(scope, id);
+    super(scope, id, props);
 
-    const pool = this.createPool();
-    this.value = pool.addDomain(`${props.id}Domain`, {
+    const pool = this.createPool(props.id);
+    const domain = pool.addDomain(`${props.id}Domain`, {
       customDomain: {
         certificate: props.certificate,
         domainName: props.customDomainName,
@@ -54,10 +55,22 @@ export class Domain extends Construct {
       },
       supportedIdentityProviders: [cognito.UserPoolClientIdentityProvider.COGNITO],
     });
+
+    new route53.ARecord(this, 'LoginKalastaARecord', {
+      zone: props.zone,
+      target: route53.RecordTarget.fromAlias(new UserPoolDomainTarget(domain)),
+      recordName: 'login.kalastaja.herrat.world',
+    });
+
+    new route53.AaaaRecord(this, 'LoginKalastaAAAARecord', {
+      zone: props.zone,
+      target: route53.RecordTarget.fromAlias(new UserPoolDomainTarget(domain)),
+      recordName: 'login.kalastaja.herrat.world',
+    });
   }
 
-  private createPool(): cognito.UserPool {
-    return new cognito.UserPool(this, 'Userpool', {
+  private createPool(id: string): cognito.UserPool {
+    return new cognito.UserPool(this, `${id}UserPool`, {
       accountRecovery: cognito.AccountRecovery.EMAIL_ONLY,
       deviceTracking: {
         challengeRequiredOnNewDevice: true,
