@@ -7,7 +7,7 @@ import { Certificate } from 'aws-cdk-lib/aws-certificatemanager';
 
 export interface KalastajaHerratStackProps extends StackProps {
   readonly certificateArn: string;
-  readonly loginCertificateArn: string;
+  readonly wildcardSubdomainCertificateArn: string;
   readonly hostedZoneDomainName: string;
 }
 
@@ -27,16 +27,16 @@ export class KalastajaHerratStack extends Stack {
       ...props,
     });
 
-    const loginCertificate = Certificate.fromCertificateArn(
+    const wildcardSubdomainCertificate = Certificate.fromCertificateArn(
       this,
-      'LoginCertificate',
-      props.loginCertificateArn
+      'wildcardSubdomainCertificate',
+      props.wildcardSubdomainCertificateArn
     );
     const cognitoDomain = new Domain(this, 'KalastajaHerratLogin', {
       id: 'KalastajaHerratLogin',
-      callbackUrls: ['http://localhost:3000/login'],
-      logoutUrls: ['http://localhost:3000/logout'],
-      certificate: loginCertificate,
+      callbackUrls: ['http://localhost:3000/login', 'https://kalastaja.herrat.world/login'],
+      logoutUrls: ['http://localhost:3000/logout', 'https://kalastaja.herrat.world/logout'],
+      certificate: wildcardSubdomainCertificate,
       zone,
       customDomainName: 'login.kalastaja.herrat.world',
       scopes: [
