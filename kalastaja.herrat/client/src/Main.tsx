@@ -1,10 +1,13 @@
 import React from 'react';
 import { Typography } from '@mui/material';
+import withAuthentication from './authentication/withAuthentication';
 
-export default function Main() {
+const Main = () => {
   return (
     <Typography variant='body1' align='center' color='text.primary'>
-      Täällä ollaan!
+      Hihheli hei Kalastaja Herra!
     </Typography>
   );
-}
+};
+
+export default withAuthentication(Main);
