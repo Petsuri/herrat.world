@@ -1,13 +1,13 @@
 import { BrowserRouter, Routes, Route } from 'react-router-dom';
-import App from './App';
+import Main from './Main';
 
-const Router = () => {
+export default function Router() {
   return (
     <BrowserRouter>
       <Routes>
-        <Route path='/' element={App} />
-        <Route path='/2021' element={App} />
+        <Route path='/' element={<Main />} />
+        <Route path='/2021' element={<Main />} />
       </Routes>
     </BrowserRouter>
   );
-};
+}
