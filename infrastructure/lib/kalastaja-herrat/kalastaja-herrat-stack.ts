@@ -34,11 +34,15 @@ export class KalastajaHerratStack extends Stack {
     );
     const cognitoDomain = new Domain(this, 'KalastajaHerratLogin', {
       id: 'KalastajaHerratLogin',
-      callbackUrls: ['http://localhost:3000/login', 'https://kalastaja.herrat.world/login'],
-      logoutUrls: ['http://localhost:3000/logout', 'https://kalastaja.herrat.world/logout'],
+      callbackUrls: [
+        'http://localhost:3000/login/callback/',
+        'https://kalastaja.herrat.world/login/callback/',
+      ],
+      logoutUrls: ['http://localhost:3000/', 'https://kalastaja.herrat.world/'],
       certificate: wildcardSubdomainCertificate,
       zone,
       customDomainName: 'login.kalastaja.herrat.world',
+      resourceServerIdentifier: 'KalastajaHerrat',
       scopes: [
         {
           scopeDescription: 'Full access',

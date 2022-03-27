@@ -8,6 +8,7 @@ import * as route53 from 'aws-cdk-lib/aws-route53';
 
 export interface DomainProps extends StackProps {
   readonly id: string;
+  readonly resourceServerIdentifier: string;
   readonly scopes: cognito.ResourceServerScope[];
   readonly customDomainName: string;
   readonly certificate: ICertificate;
@@ -30,7 +31,7 @@ export class Domain extends Stack {
 
     const resourceServer = pool.addResourceServer(`${props.id}ResourceServer`, {
       scopes: props.scopes,
-      identifier: `${props.id}ResourceServer`,
+      identifier: props.resourceServerIdentifier,
     });
 
     pool.addClient(`${props.id}Client`, {
@@ -38,7 +39,13 @@ export class Domain extends Stack {
       oAuth: {
         callbackUrls: props.callbackUrls,
         logoutUrls: props.logoutUrls,
+        flows: {
+          authorizationCodeGrant: true,
+          implicitCodeGrant: true,
+        },
         scopes: [
+          cognito.OAuthScope.EMAIL,
+          cognito.OAuthScope.OPENID,
           cognito.OAuthScope.resourceServer(
             resourceServer,
             new cognito.ResourceServerScope({ scopeName: '*', scopeDescription: 'Full access' })

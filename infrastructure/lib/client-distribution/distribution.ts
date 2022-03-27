@@ -31,6 +31,13 @@ export class Distribution extends Stack {
     const cloudFront = new cloudfront.CloudFrontWebDistribution(this, 'ClientDistribution', {
       priceClass: cloudfront.PriceClass.PRICE_CLASS_100,
       viewerProtocolPolicy: cloudfront.ViewerProtocolPolicy.REDIRECT_TO_HTTPS,
+      errorConfigurations: [
+        {
+          errorCode: 404,
+          responseCode: 200,
+          responsePagePath: '/index.html',
+        },
+      ],
       viewerCertificate: {
         aliases: [props.domain],
         props: {
