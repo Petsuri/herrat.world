@@ -8,7 +8,10 @@
   "author": "Petri Miikki",
   "scripts": {
     "prepare": "husky install",
-    "format": "prettier --write ."
+    "format": "prettier --write .",
+    "kalastaja.herrat:build:site": "cd kalastaja.herrat/client && npm run build",
+    "kalastaja.herrat:deploy:infrastructure": "cd infrastructure && npm run deploy",
+    "deploy": "npm run kalastaja.herrat:build:site && npm run kalastaja.herrat:deploy:infrastructure"
   },
   "devDependencies": {
     "@typescript-eslint/eslint-plugin": "^5.14.0",
