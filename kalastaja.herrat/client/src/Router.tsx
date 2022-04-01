@@ -1,15 +1,18 @@
+import { Container } from '@mui/material';
 import { BrowserRouter, Routes, Route } from 'react-router-dom';
 import LoginCallback from './authentication/LoginCallback';
-import Main from './Main';
+import Year2021 from './results/Year2021';
 
 export default function Router() {
   return (
-    <BrowserRouter>
-      <Routes>
-        <Route path='/login/callback/' element={<LoginCallback />} />
-        <Route path='/2021' element={<Main />} />
-        <Route path='/' element={<Main />} />
-      </Routes>
-    </BrowserRouter>
+    <Container sx={{ height: '100vh', padding: '2rem' }}>
+      <BrowserRouter>
+        <Routes>
+          <Route path='/login/callback/' element={<LoginCallback />} />
+          <Route path='/2021/results' element={<Year2021 />} />
+          <Route path='/' element={<Year2021 />} />
+        </Routes>
+      </BrowserRouter>
+    </Container>
   );
 }
