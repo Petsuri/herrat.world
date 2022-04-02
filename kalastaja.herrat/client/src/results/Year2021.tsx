@@ -1,7 +1,8 @@
 import React from 'react';
+import withAuthentication from '../authentication/withAuthentication';
 import { Competitor } from './types';
 import { YearlyResults } from './YearlyResults';
-export default function Year2021() {
+const Year2021 = () => {
   const results = [
     new Competitor({
       fishWeight: 6.75,
@@ -25,3 +26,5 @@ export default function Year2021() {
 
   return <YearlyResults competitors={results} />;
 }
+
+export default withAuthentication(Year2021);
