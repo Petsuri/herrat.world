@@ -1,7 +1,7 @@
 import React from 'react';
 import { Box, Card, CardContent, CardHeader, Grid, Typography } from '@mui/material';
 import { Competitor } from './types';
-import { styled } from '@mui/system';
+import styled from '@emotion/styled';
 
 export interface ResultCardProps {
   readonly competitor: Competitor;
